@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Opulent Hardware - Calendar </title>
+  <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --d-bg: #0f141b;
+      --d-bg-2: #1a222c;
+      --d-border: rgba(255,255,255,.08);
+      --d-text: #ebf2ff;
+      --d-muted: #a9b7c8;
+      --d-accent: #b6ff3b;
+      --l-bg: #f5f7fb;
+      --l-bg-2: #eef2f7;
+      --l-border: rgba(0,0,0,.08);
+      --l-text: #1b2733;
+      --l-muted: #5a6a7a;
+      --l-accent: #4aa9ff;
+      --radius: 20px;
+      --shadow: 0 24px 60px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.35);
+      --tile: 14px;
+    }
+
+    html[data-theme="dark"] {
+      --bg: var(--d-bg);
+      --bg2: var(--d-bg-2);
+      --border: var(--d-border);
+      --text: var(--d-text);
+      --muted: var(--d-muted);
+      --accent: var(--d-accent);
+    }
+    html[data-theme="light"] {
+      --bg: var(--l-bg);
+      --bg2: var(--l-bg-2);
+      --border: var(--l-border);
+      --text: var(--l-text);
+      --muted: var(--l-muted);
+      --accent: var(--l-accent);
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Saira', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Inter", "SF Pro", Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 60% -10%, rgba(0,0,0,.25) 0, transparent 50%), var(--bg);
+      color: var(--text);
+      display: grid; place-items: center;
+    }
+
+    .frame {
+      width: min(1050px, 95vw);
+      aspect-ratio: 16/9;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr minmax(84px, 12%);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    /* Wood Accent */
+    .wood {
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,0) 18%),
+        repeating-linear-gradient(12deg,
+          rgba(80,40,20,.35) 0 6px,
+          rgba(120,70,40,.35) 6px 14px,
+          rgba(60,30,15,.35) 14px 22px
+        ),
+        linear-gradient(180deg, #8c5d3d, #c08a5a 50%, #9a6946 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), inset 0 -1px 0 rgba(0,0,0,.25);
+      display: grid; place-items: center;
+      padding-inline: 10px;
+    }
+
+    .wood .engrave {
+      font-family: 'Saira', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Inter", Arial, sans-serif;
+      font-weight: 800; letter-spacing: .18em; font-size: clamp(9px, 1.3vmin, 13px);
+      color: rgba(0,0,0,.7);
+      text-shadow: 0 1px 0 rgba(255,255,255,.25), 0 -1px 0 rgba(0,0,0,.8);
+      text-transform: uppercase; text-align: center;
+      width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .panel {
+      display: grid; grid-template-rows: auto 1fr; gap: 0;
+      height: 100%; width: 100%;
+      background: linear-gradient(180deg, var(--bg2), var(--bg));
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0));
+    }
+
+    .btn, .toggle {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn.icon { width: 36px; height: 32px; display:grid; place-items:center; padding:0; }
+    .grid { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+    .dow { display: grid; grid-template-columns: repeat(7, 1fr); text-align:center; padding: 8px 14px; color: var(--muted); }
+    .days { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(84px, 1fr); gap: var(--tile); padding: 14px; }
+
+    .day {
+      position: relative; border-radius: 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    .day:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.25); }
+    .num { position: absolute; top: 8px; right: 10px; font-size: .9rem; color: var(--muted); }
+    .today { outline: 2px solid color-mix(in oklab, var(--accent) 60%, transparent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent); }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <section class="panel">
+      <header class="bar">
+        <button class="btn icon" id="prev">◀</button>
+        <div class="title" id="title">—</div>
+        <button class="btn icon" id="next">▶</button>
+        <button class="toggle" id="mode">Toggle</button>
+      </header>
+      <div class="grid">
+        <div class="dow" id="dow"></div>
+        <div class="days" id="days"></div>
+      </div>
+    </section>
+
+    <aside class="wood">
+      <div class="engrave">OPULENT&nbsp;HARDWARE</div>
+    </aside>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const themeParam = params.get('theme');
+    const weekStart = Number(params.get('weekStart') ?? 0); // Start week on Sunday
+    const initial = params.get('initial');
+
+    if (themeParam === 'light' || themeParam === 'dark')
+      document.documentElement.setAttribute('data-theme', themeParam);
+
+    const title = document.getElementById('title');
+    const daysWrap = document.getElementById('days');
+    const dowWrap = document.getElementById('dow');
+
+    const WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    function buildDOW() {
+      const order = [...WEEKDAYS.slice(weekStart), ...WEEKDAYS.slice(0, weekStart)];
+      dowWrap.innerHTML = order.map(d => `<div>${d}</div>`).join('');
+    }
+
+    let current = (() => {
+      if (!initial) return new Date();
+      const [y,m] = initial.split('-').map(Number);
+      return new Date(y, (m||1)-1, 1);
+    })();
+
+    const state = { events: {} };
+
+    function formatMonth(date) { return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }).toUpperCase(); }
+    function startOfMonth(date) { return new Date(date.getFullYear(), date.getMonth(), 1); }
+    function endOfMonth(date) { return new Date(date.getFullYear(), date.getMonth()+1, 0); }
+
+    function render() {
+      buildDOW();
+      const start = startOfMonth(current);
+      const end = endOfMonth(current);
+      title.textContent = formatMonth(current);
+      const startIdx = (start.getDay() - weekStart + 7) % 7;
+      const daysInMonth = end.getDate();
+      const today = new Date();
+      const cells = [];
+
+      for (let i=0; i<startIdx; i++) cells.push('<div></div>');
+      for (let d=1; d<=daysInMonth; d++) {
+        const date = new Date(current.getFullYear(), current.getMonth(), d);
+        const isToday = date.toDateString() === today.toDateString();
+        const key = date.toISOString().slice(0,10);
+        const evs = state.events[key] || [];
+        cells.push(`
+          <div class="day ${isToday? 'today':''}" data-date="${key}">
+            <div class="num">${d}</div>
+          </div>`);
+      }
+      daysWrap.innerHTML = cells.join('');
+    }
+
+    document.getElementById('prev').onclick = () => { current = new Date(current.getFullYear(), current.getMonth()-1, 1); render(); };
+    document.getElementById('next').onclick = () => { current = new Date(current.getFullYear(), current.getMonth()+1, 1); render(); };
+    document.getElementById('mode').onclick = () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    };
+
+    render();
+  </script>
+</body>
+</html>
