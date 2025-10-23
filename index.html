@@ -7,18 +7,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --d-bg: #0f141b;
-      --d-bg-2: #1a222c;
-      --d-border: rgba(255,255,255,.08);
-      --d-text: #ebf2ff;
-      --d-muted: #a9b7c8;
-      --d-accent: #b6ff3b;
+      /* DARK THEME — tuned for true black while preserving legibility */
+      --d-bg: #000000;               /* real black */
+      --d-bg-2: #0a0a0a;             /* near-black for subtle panel separation */
+      --d-border: rgba(255,255,255,.10); /* slightly stronger to read on black */
+      --d-text: #f2f6ff;             /* soft white for comfortable contrast */
+      --d-muted: #9aa6b2;            /* cool gray-blue, readable on black */
+      --d-accent: #b6ff3b;           /* existing accent pops well on black */
+
+      /* LIGHT THEME (unchanged) */
       --l-bg: #f5f7fb;
       --l-bg-2: #eef2f7;
       --l-border: rgba(0,0,0,.08);
       --l-text: #1b2733;
       --l-muted: #5a6a7a;
       --l-accent: #4aa9ff;
+
       --radius: 20px;
       --shadow: 0 24px 60px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.35);
       --tile: 14px;
@@ -45,14 +49,17 @@
     body {
       margin: 0;
       font-family: 'Saira', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Inter", "SF Pro", Arial, sans-serif;
-      background: radial-gradient(1200px 700px at 60% -10%, rgba(0,0,0,.25) 0, transparent 50%), var(--bg);
+      /* Vignette kept *very* subtle so true black reads as black */
+      background:
+        radial-gradient(1200px 700px at 60% -10%, rgba(255,255,255,.02) 0, transparent 55%),
+        var(--bg);
       color: var(--text);
       display: grid; place-items: center;
     }
 
     .frame {
       width: min(1100px, 96vw);
-      height: min(820px, 92vh); /* fill the viewport vertically; no aspect-ratio clipping */
+      height: min(820px, 92vh);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow: hidden;
@@ -91,12 +98,12 @@
 
     .bar {
       display: grid;
-      grid-template-columns: 1fr auto 1fr; /* center the month/nav, sides for left/right controls */
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
       gap: 12px;
-      padding: 10px 12px; /* slightly tighter to free space for the grid */
+      padding: 10px 12px;
       border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0));
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
     }
 
     .left-actions { justify-self: start; display: flex; gap: 8px; align-items: center; }
@@ -120,30 +127,49 @@
     .grid { display: grid; grid-template-rows: auto 1fr; height: 100%; min-height: 0; }
     .dow { display: grid; grid-template-columns: repeat(7, 1fr); text-align:center; padding: 6px 10px; color: var(--muted); }
 
-    /* Fill all remaining space and always show all rows without clipping */
     .days {
-      --rows: 6; /* default */
+      --rows: 6;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       grid-template-rows: repeat(var(--rows), 1fr);
       height: 100%;
       min-height: 0;
       gap: var(--tile);
-      padding: 10px; /* tighter so the calendar fills the frame */
+      padding: 10px;
       box-sizing: border-box;
     }
 
     .day {
       position: relative; border-radius: 16px;
       border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
-      transition: transform .12s ease, box-shadow .12s ease;
-      min-height: 0; /* prevent overflow stretching */
+      /* On true black, lift the tiles slightly with a faint top highlight */
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.015));
+      transition: transform .12s ease, box-shadow .12s ease, outline-color .12s ease;
+      min-height: 0;
     }
 
-    .day:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.25); }
+    .day:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.35); }
     .num { position: absolute; top: 8px; right: 10px; font-size: .9rem; color: var(--muted); }
-    .today { outline: 2px solid color-mix(in oklab, var(--accent) 60%, transparent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent); }
+
+    /* Today ring — color-mix with fallback for older browsers */
+    .today {
+      outline: 2px solid color-mix(in oklab, var(--accent) 60%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+    }
+    @supports not (color-mix(in oklab, white 50%, black)) {
+      .today {
+        outline: 2px solid var(--accent);
+        box-shadow: 0 0 0 3px rgba(182,255,59,.25);
+      }
+    }
+
+    /* Focus for keyboard users */
+    .day:focus {
+      outline: 2px solid rgba(255,255,255,.35);
+      outline-offset: -2px;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.12);
+    }
 
     @media (prefers-reduced-motion: reduce){ .day { transition: none; } }
     @media (max-width: 560px){ .dow { display: none; } .num { font-size: 0.85rem; } }
@@ -225,14 +251,18 @@
       const daysInMonth = end.getDate();
       const today = new Date();
 
-      // Compute how many rows are needed (5 or 6) and set a CSS var so rows fill available space
       const cells = startIdx + daysInMonth;
       const rows = Math.ceil(cells / 7);
       daysWrap.style.setProperty('--rows', rows);
 
       const frag = document.createDocumentFragment();
 
-      for (let i = 0; i < startIdx; i++) frag.appendChild(document.createElement('div'));
+      // leading blanks
+      for (let i = 0; i < startIdx; i++) {
+        const blank = document.createElement('div');
+        blank.setAttribute('aria-hidden', 'true');
+        frag.appendChild(blank);
+      }
 
       for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(current.getFullYear(), current.getMonth(), d);
@@ -244,6 +274,7 @@
         cell.className = `day ${isToday ? 'today' : ''}`;
         cell.dataset.date = key;
         cell.setAttribute('role', 'gridcell');
+        cell.setAttribute('tabindex', '0');
         cell.setAttribute('aria-label', date.toLocaleDateString(undefined, {weekday:'long', year:'numeric', month:'long', day:'numeric'}));
 
         const num = document.createElement('div');
